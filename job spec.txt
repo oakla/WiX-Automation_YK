@@ -1,0 +1,9 @@
+Kinda lame me putting this in the "opportunities" channel BUT - can I give someone $100 to help make a problem go away?
+Basically, I need to hook up my Mailchimp account (i.e. the platform from which I deliver the www.aisafetyanz.com.au) newsletter and Wix (what the website is built on) so that when someone gives us their details on the website (whether that be via newsletter sign up or event sign up) they automatically become a contact in Mailchimp?
+
+
+I need to hook up my Mailchimp account (i.e. the platform from which I deliver the www.aisafetyanz.com.au) newsletter and Wix (what the website is built on) so that when someone gives us their details on the website (whether that be via newsletter sign up or event sign up) they automatically become a contact in Mailchimp?
+
+
+
+I have a website built with Wix with a 'sign up for email updates' form. How can I automatically create a contact in Mailchimp whenever someone submits that form?
