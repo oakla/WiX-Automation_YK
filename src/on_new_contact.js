@@ -21,7 +21,7 @@ async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
     try {
         const response = await fetch(url, options);
         
-        // Retry only for specific status codes
+        // Retry only for errors that are likely temporary or intermittent
         if ([500, 502, 503, 504].includes(response.status)) {
             if (retries > 0) {
                 console.warn(`Request failed with status ${response.status}. Retrying in ${backoff}ms...`);
@@ -32,7 +32,7 @@ async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
             }
         }
 
-        return response;  // Return the response if successful or the error is not likely intermittent
+        return response;  // If successful or the error is not likely intermittent
     } catch (error) {
         if (retries > 0) {
             console.warn(`Request failed: ${error.message}. Retrying in ${backoff}ms...`);
@@ -62,11 +62,12 @@ const cityGroupIdMap = {
 
 
 async function myGetContactFunction(contactId) {
+  console.log("Running myGetContactFunction(...)")
   const options = {
     suppressAuth: true,
   };
 
-  console.log(`Attempting getContact with ${contactId}`);
+  console.log(`Attempting getContact with contactId = ${contactId}, options = ${JSON.stringify(options)}`);
   const result = await contacts.getContact(contactId, options);
   console.log(`contact_found: ${JSON.stringify(result)}`);
   return result;
@@ -74,6 +75,7 @@ async function myGetContactFunction(contactId) {
 
 
 async function findAlternativeCityGroupInfo(contactId) {
+  console.log("Running findAlternativeCityGroupInfo(...)")
   const contactResult = await myGetContactFunction(contactId);
 
   let matchingKey = "";
@@ -160,12 +162,13 @@ async function addSubscriber(email, firstName, lastName, cityGroup) {
 export const invoke = async ({payload}) => {
     // Your code here
     console.log("Running code action in response to 'new contact created trigger'")
-    console.log(payload)
+    console.log(`payload == ${JSON.stringify(payload)}`)
 
     let cityGroup = ""
     if(payload.contact.address?.addressLine){
         cityGroup = payload.contact.address.addressLine
     } else {
+        console.log("No addressLine found in payload.")
         cityGroup = await findAlternativeCityGroupInfo(payload.contactId)
     }
     
