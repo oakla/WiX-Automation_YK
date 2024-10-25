@@ -15,7 +15,6 @@
 import {fetch} from 'wix-fetch'; 
 import { getSecret } from "wix-secrets-backend";
 import { contacts } from "wix-crm-backend";
-import { guests, wixEventsV2 } from "wix-events.v2";
 
 
 async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
@@ -49,7 +48,6 @@ const cityGroupIdMap = {
     "Sydney": "616bdbf44d",
     "Melbourne": "baccf398c2",
     "Brisbane": "0c2bedf9af",
-    "QLD": "0c2bedf9af", // Maps to Brisbane - considered equivalent
     "Perth": "2b70e4328d",
     "Adelaide": "b1a1491d9d",
     "Canberra": "bbb11b95b7",
@@ -76,93 +74,22 @@ async function myGetContactFunction(contactId) {
 }
 
 
-async function getEvent(eventId, options) {
-	try {
-		const result = await wixEventsV2.getEvent(eventId, options);
-		return result;
-	} catch (error) {
-		console.error(error);
-		// Handle the error
-	}
-}
-
-export async function myQueryGuestsFunction(targetContactId) {
-
-  console.log(`Looking for guests with contactId = ${targetContactId} ...`);
-  const options = {
-    "fields": [guests.RequestedFieldsEnumRequestedFields.GUEST_DETAILS]
-  }
-
-  try {
-    const items = await guests.queryGuests(options).eq('contactId', targetContactId).find();
-    if(items.items[0]) {
-      console.log(`Guest found: ${JSON.stringify(items.items[0])}`)
-      return items.items[0]
-    } else {
-      console.log(`items.items[0] was falsy`)
-      return null
-    }
-  } catch (error) {
-    console.error(error);
-    // Handle the error
-  }
-}
-
-async function findAttendingEvent(contactId) {
-  console.log("Running findAttendingEvent(...)")
-  const guest = myQueryGuestsFunction(contactId)
-  if(guest){
-    const eventResult = await getEvent(guest.eventId)
-    if(eventResult) {
-      console.log(`Event found: ${JSON.stringify(eventResult)}`)
-      return eventResult
-    } else {
-      console.log("eventResult was falsy")
-    }
-  } else {
-    console.log("guest was falsy")
-  }
-  
-}
-
-function findCityKeyMatch(stringsToSearch) {
-  const groupKeys = Object.keys(cityGroupIdMap);
-  groupKeys = groupKeys.filter(x => x.toLowerCase() !== "other")
-  return groupKeys.find((groupKey) =>
-    stringsToSearch.some((string) =>
-      string.toLowerCase().includes(groupKey.toLowerCase())
-    )
-  );
-}
-
-
 async function findAlternativeCityGroupInfo(contactId) {
   console.log("Running findAlternativeCityGroupInfo(...)")
   const contactResult = await myGetContactFunction(contactId);
 
   let matchingKey = "";
   if (contactResult?.info.labelKeys) {
+    const groupKeys = Object.keys(cityGroupIdMap);
     const labelKeys = contactResult.info.labelKeys;
-    matchingKey = findCityKeyMatch(labelKeys);
-  } 
-  if (!matchingKey) {
-    eventResult = findAttendingEvent(contactId);
-    matchingKey = findCityKeyMatch(
-      [
-        eventResult?.title,
-        eventResult?.contactLabel,
-        eventResult.location?.address?.city, 
-        eventResult.location?.address?.addressLine,
-        eventResult?.slug,
-        eventResult.location?.address?.subdivision
-      ]
+    matchingKey = groupKeys.find((groupKey) =>
+      labelKeys.some((labelKey) =>
+        labelKey.toLowerCase().includes(groupKey.toLowerCase())
+      )
     );
-  }
-  if (!matchingKey) {
-    console.log("No matching key found in contact or event data. Defaulting to 'Other'.");
+  } else {
     matchingKey = "Other";
   }
-
   console.log(`matchingKey: ${matchingKey}`);
   return matchingKey;
 }

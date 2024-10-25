@@ -42,10 +42,10 @@ export const invoke = async ({payload}) => {
     console.log(`items.items[0] was falsy`)
   }
 
-	const eventLocation = await getEvent(items.items[0].location)
+	const eventResult = await getEvent(items.items[0])
 
-	if(eventLocation) {
-		console.log("Success! Event: ", eventLocation);
+	if(eventResult) {
+		console.log("Success! Event: ", eventResult.location);
 	} else {
 		console.log("eventResult was falsy")
 	}
